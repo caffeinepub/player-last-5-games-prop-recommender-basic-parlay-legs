@@ -1,0 +1,223 @@
+{
+  "schemaVersion": "1.0.0",
+  "projectStateVersion": 13,
+  "summary": "Build a basic, user-friendly program that automatically ingests an athlete’s last 5 games performance data (no manual entry) and outputs recommended parlay legs (player prop recommendations) based on common recent stat thresholds, optionally filtered to props currently offered by sportsbooks (e.g., DraftKings, FanDuel, Bet365).",
+  "architectural_notes": [
+    "Recommendation logic based on last-5-game hit frequency for stat thresholds (e.g., 4 out of 5).",
+    "Optionally validate/filter recommended legs against sportsbook-offered markets/lines (requires sportsbook data source or API integration).",
+    "Replace/augment manual stat entry with an automated last-5-games stats ingestion pipeline via a sports stats data source/API (including player lookup and game log retrieval).",
+    "Implement server-side proxy for external player game stats API (API keys and provider endpoints stored backend-side; UI calls only first-party backend endpoint).",
+    "Selected BallDontLie as the external stats provider for automatic last-5-games ingestion (player lookup + game logs).",
+    "Ensure backend canister exposes a stable last-5-games ingestion/retrieval method (e.g., fetchLastFiveGames/player lookup + game logs via BallDontLie) with signatures matching frontend calls."
+  ],
+  "known_issues": [
+    "Current workflow requires manual entry of last-5-game stats, but user requires automatic ingestion.",
+    "Frontend is calling a backend ingestion/last-5-games method that does not exist (method/signature mismatch), causing the Fetch Last 5 Games workflow to fail.",
+    "Automated build/deployment repeatedly fails with generic 'AI couldn't implement your request' / 'Failed to build your app' errors even when given a precise, file-level ingestion spec, blocking progress on the ingestPlayer + frontend update work."
+  ],
+  "isFixRequest": true,
+  "existing_features": [
+    {
+      "id": "feature-provide-a-simple-user-friendly-ui-where-a-user-can-enter-a-player-name-and-input-that-player-s-performance-stats-for-the-last-5-games-at-minimum-points-rebounds-assists-threes-made-and-submit-the-data-for-analysis",
+      "title": "Provide a simple, user-friendly UI where a user can enter a player name and input that player’s performance stats for the last 5 games (at minimum: points, rebounds, assists, threes made) and submit the data for analysis.",
+      "reqIds": [
+        "REQ-1"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-display-the-computed-recommendations-in-the-ui-as-a-simple-readable-list-for-the-entered-player-showing-each-recommended-prop-leg-and-its-hit-rate-from-the-last-5-games",
+      "title": "Display the computed recommendations in the UI as a simple, readable list for the entered player, showing each recommended prop leg and its hit rate from the last 5 games.",
+      "reqIds": [
+        "REQ-4"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-support-validating-filtering-recommendations-against-sportsbook-offered-props-by-allowing-the-user-to-input-manually-via-ui-a-list-of-offered-props-lines-for-a-selected-sportsbook-e-g-draftkings-fanduel-bet365-and-only-show-recommendations-that-match-an-offered-line-when-filtering-is-enabled",
+      "title": "Support validating/filtering recommendations against “sportsbook offered props” by allowing the user to input (manually, via UI) a list of offered props/lines for a selected sportsbook (e.g., DraftKings, FanDuel, Bet365), and only show recommendations that match an offered line when filtering is enabled.",
+      "reqIds": [
+        "REQ-5"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-add-a-coherent-polished-visual-theme-colors-typography-spacing-and-layout-suitable-for-a-sports-analytics-tool-and-apply-it-consistently-across-the-main-screen-input-form-results-list-empty-states-and-errors",
+      "title": "Add a coherent, polished visual theme (colors, typography, spacing, and layout) suitable for a sports analytics tool and apply it consistently across the main screen (input form, results list, empty states, and errors).",
+      "reqIds": [
+        "REQ-6"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-replace-the-manual-last-5-games-stat-entry-table-with-an-automatic-fetch-last-5-games-workflow-user-enters-a-player-name-triggers-fetch-then-runs-analysis-using-the-fetched-games",
+      "title": "Replace the manual 'Last 5 Games' stat-entry table with an automatic 'Fetch last 5 games' workflow: user enters a player name, triggers fetch, then runs analysis using the fetched games.",
+      "reqIds": [
+        "REQ-8"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-update-frontend-data-flow-backend-client-react-query-hooks-to-use-the-new-backend-ingestion-method-and-remove-validation-mutations-that-require-exactly-five-manually-entered-games",
+      "title": "Update frontend data flow (backend client + React Query hooks) to use the new backend ingestion method, and remove validation/mutations that require exactly five manually-entered games.",
+      "reqIds": [
+        "REQ-9"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-align-the-frontend-workflow-with-the-balldontlie-backed-ingestion-by-removing-the-stats-api-url-input-and-updating-the-ingestion-call-to-only-require-a-player-name",
+      "title": "Align the frontend workflow with the BallDontLie-backed ingestion by removing the \"Stats API URL\" input and updating the ingestion call to only require a player name.",
+      "reqIds": [
+        "REQ-12"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-update-the-frontend-backend-client-wrapper-and-react-query-hooks-to-match-the-updated-backend-method-signatures-for-balldontlie-ingestion-and-last-five-games-retrieval",
+      "title": "Update the frontend backend-client wrapper and React Query hooks to match the updated backend method signatures for BallDontLie ingestion and last-five-games retrieval.",
+      "reqIds": [
+        "REQ-13"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-update-the-frontend-ingestion-workflow-to-call-the-new-backend-ingestion-method-instead-of-throwing-the-current-placeholder-error-and-ensure-react-query-invalidation-refetch-updates-the-last-5-games-preview-and-recommendations-for-the-entered-player",
+      "title": "Update the frontend ingestion workflow to call the new backend ingestion method (instead of throwing the current placeholder error), and ensure React Query invalidation/refetch updates the “Last 5 Games” preview and recommendations for the entered player.",
+      "reqIds": [
+        "REQ-15"
+      ],
+      "version": 1
+    }
+  ],
+  "new_feature_requests": [
+    {
+      "id": "AR-1",
+      "summary": "Ingest athlete performance stats for the last 5 games (points, rebounds, assists, threes made, etc.)",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-2",
+      "summary": "Generate recommended parlay legs/player prop thresholds based on last-5-game frequency (e.g., 20+ points hit in 4/5 games)",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-3",
+      "summary": "Allow user to enter a player name and display a simple list of recommended props/legs as output",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-4",
+      "summary": "Integrate/lookup which player prop bets are currently offered by sportsbooks (e.g., DraftKings, FanDuel, Bet365) to ensure recommendations are valid",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-6",
+      "summary": "Implement backend data structures and APIs to accept and store a player’s last-5-game stat entries, keyed by player name, and return the stored last-5-game dataset for display.",
+      "reqIds": [
+        "REQ-2"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-7",
+      "summary": "Generate recommended player-prop “legs” from the last 5 games by computing how often the player met or exceeded common thresholds for each stat category (e.g., 20+ points, 10+ rebounds), and return a simple ranked list of recommendations with their hit frequency (e.g., 4/5).",
+      "reqIds": [
+        "REQ-3"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-8",
+      "summary": "Automatically fetch a player's last 5 games stats from an external data source/API (no manual stat entry) for use in recommendations",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-9",
+      "summary": "Add backend support to automatically ingest a player’s last 5 games from a configurable external stats API (no manual entry) and store the fetched results for recommendation generation.",
+      "reqIds": [
+        "REQ-7"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-10",
+      "summary": "Add a backend-only/proxy API endpoint to fetch player game statistics from an external stats provider while keeping provider details/API keys hidden from the user/UI",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-11",
+      "summary": "Update the backend to use BallDontLie as the fixed external stats provider for automatic ingestion of a player’s last 5 games, without requiring the frontend to provide an API URL.",
+      "reqIds": [
+        "REQ-10"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-12",
+      "summary": "Implement backend storage and retrieval for a player’s last 5 games fetched from BallDontLie, including points, rebounds, assists, and threes made.",
+      "reqIds": [
+        "REQ-11"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-13",
+      "summary": "Implement a backend ingestion method that takes a player name, resolves the player on BallDontLie, fetches that player’s last 5 games, converts the response into the backend Game records (points, rebounds, assists, threes, date, opponent), and stores the result keyed by player name so it can be retrieved via the existing getLast5Games(playerName) query.",
+      "reqIds": [
+        "REQ-14"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-14",
+      "summary": "Add a new public shared backend method `ingestPlayer(playerName: Text) : async ()` that (1) searches BallDontLie for the player by name, (2) fetches the player’s most recent 5 games, (3) converts the response into the existing backend `Game` record shape `{ points; rebounds; assists; threes; date; opponent }`, and (4) stores the resulting 5-game array keyed by `playerName` so it can be returned by the existing `getLast5Games(playerName)` query.",
+      "reqIds": [
+        "REQ-16"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-15",
+      "summary": "Align backend BallDontLie base URL usage so backend outcalls use the same BallDontLie API host/version that the current frontend ingestion flow uses (`https://api.balldontlie.io/v1/...`).",
+      "reqIds": [
+        "REQ-17"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-16",
+      "summary": "Update the frontend ingestion workflow (`frontend/src/features/playerProps/hooks/useIngestLastFiveGamesMutation.ts`) to stop calling BallDontLie directly from the browser and instead call the backend `ingestPlayer(playerName)` method, then invalidate/refetch the existing React Query queries for last-five-games and recommendations.",
+      "reqIds": [
+        "REQ-18"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-17",
+      "summary": "Update the frontend backend client wrapper (`frontend/src/features/playerProps/backendClient.ts`) to expose an `ingestPlayer(playerName: string): Promise<void>` method that calls the backend actor’s `ingestPlayer` method, and keep `getLastFiveGames` working with the backend’s `getLast5Games` response.",
+      "reqIds": [
+        "REQ-19"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-18",
+      "summary": "Ensure the existing UI flow (player name input + “Fetch Last 5 Games” button + last-5-games preview + recommendations) works end-to-end using backend ingestion: clicking “Fetch Last 5 Games” ingests via backend, then the last-5-games preview table and recommendations render for the entered player.",
+      "reqIds": [
+        "REQ-20"
+      ],
+      "status": "pending"
+    }
+  ],
+  "gameProjectType": "none",
+  "projectName": "Player last-5-games prop recommender (basic parlay legs)",
+  "clarification_mode": "instant",
+  "clarification_rounds": 0
+}

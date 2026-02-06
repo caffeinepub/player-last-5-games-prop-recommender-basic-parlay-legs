@@ -1,0 +1,17 @@
+{
+  "frontend/src/App.tsx": "Main application component that orchestrates the auto-fetch player stats form, offered props editor, and recommendations display with ingestion-based state management.",
+  "frontend/src/features/playerProps/types.ts": "TypeScript type definitions for game stats, offered props, and prop recommendations used throughout the feature.",
+  "frontend/src/features/playerProps/validation.ts": "Validation utilities for player names and game stats; API URL validation removed.",
+  "frontend/src/features/playerProps/backendClient.ts": "Client wrapper that retrieves stored last 5 games from backend and converts Game type to GameStatsInput format with threesMade field mapping.",
+  "frontend/src/features/playerProps/components/LastFiveGamesForm.tsx": "Form component with player name input that triggers auto-fetch of last 5 games from BallDontLie and displays a read-only preview table with loading and error states.",
+  "frontend/src/features/playerProps/components/RecommendationsList.tsx": "Displays prop recommendations as cards showing hit rates, confidence levels, and visual progress indicators with loading and error states.",
+  "frontend/src/features/playerProps/components/OfferedPropsEditor.tsx": "Sidebar component for selecting a sportsbook, adding offered prop lines, and toggling recommendation filtering.",
+  "frontend/src/features/playerProps/hooks/usePlayerStatsMutation.ts": "React Query mutation hook that submits player stats to the backend and invalidates related queries on success.",
+  "frontend/src/features/playerProps/hooks/usePropRecommendationsQuery.ts": "React Query hook that fetches last 5 games and calculates prop recommendations on the frontend by analyzing hit rates across different thresholds, with optional filtering against offered props.",
+  "frontend/src/features/playerProps/utils/propMatching.ts": "Utility functions for normalizing prop types, matching recommendations against offered props, and formatting prop labels.",
+  "frontend/src/index.css": "Global styles with OKLCH color system defining a sports analytics theme with purple/blue accents and proper light/dark mode support.",
+  "frontend/tailwind.config.js": "Tailwind configuration extending the theme with custom colors, border radius, and Inter font family for a polished sports analytics aesthetic.",
+  "frontend/src/features/playerProps/hooks/useIngestLastFiveGamesMutation.ts": "React Query mutation hook that fetches a player's last 5 games from BallDontLie API (search player, fetch stats, sort by date) and stores them in the backend via fetchLast5GamesAndStore, with proper error handling for \"not found\" and \"invalid\" responses and correct opponent determination using team abbreviations.",
+  "frontend/src/features/playerProps/hooks/useLastFiveGamesQuery.ts": "React Query hook that fetches the persisted last five games for a player from backend storage.",
+  "frontend/src/backend.d.ts": "TypeScript interface definitions for the backend canister, including Game type and backendInterface with methods for storing and retrieving last 5 games data."
+}

@@ -1,0 +1,66 @@
+{
+  "kind": "implementation_plan",
+  "version": "1.0",
+  "title": "Switch frontend last-5-games ingestion from browser BallDontLie fetch to backend ingestPlayer",
+  "requirements": [
+    {
+      "id": "REQ-18",
+      "summary": "Update the ingestion mutation hook to call backend ingestPlayer (no browser BallDontLie calls) and invalidate/refetch last-five-games and recommendations queries.",
+      "acceptanceCriteria": [
+        "`useIngestLastFiveGamesMutation` no longer performs any `fetch(...)` calls to `api.balldontlie.io`.",
+        "`useIngestLastFiveGamesMutation` calls `actor.ingestPlayer(playerName)` and awaits completion.",
+        "On success, React Query invalidates `['lastFiveGames', playerName]` and `['propRecommendations', playerName]` (matching the app’s existing query keys) so UI refreshes automatically.",
+        "Any error shown to the user remains in English and indicates ingestion failed (without leaking low-level stack traces)."
+      ],
+      "file_operations": [
+        {
+          "path": "frontend/src/features/playerProps/hooks/useIngestLastFiveGamesMutation.ts",
+          "operation": "modify",
+          "description": "Replace the direct BallDontLie browser fetch flow with a backend call to `actor.ingestPlayer(playerName)` (await completion), remove BallDontLie response types/conversion logic, and keep React Query invalidation for `['lastFiveGames', playerName]` and `['propRecommendations', playerName]` on success."
+        }
+      ]
+    },
+    {
+      "id": "REQ-19",
+      "summary": "Expose ingestPlayer in the frontend backend client wrapper while keeping getLastFiveGames mapping behavior intact.",
+      "acceptanceCriteria": [
+        "`PlayerPropsBackendClient` includes an `ingestPlayer(playerName: string)` method that calls `this.actor.ingestPlayer(playerName)`.",
+        "Existing `getLastFiveGames` continues to map backend `Game` fields into `GameStatsInput` fields, including mapping backend `threes` to frontend `threesMade`."
+      ],
+      "file_operations": [
+        {
+          "path": "frontend/src/features/playerProps/backendClient.ts",
+          "operation": "modify",
+          "description": "Add `ingestPlayer(playerName: string): Promise<void>` that delegates to `this.actor.ingestPlayer(playerName)`; keep `getLastFiveGames` behavior and ensure `threes` continues mapping to `threesMade`."
+        },
+        {
+          "path": "frontend/src/backend.d.ts",
+          "operation": "modify",
+          "description": "Update the generated backend interface typing to include `ingestPlayer(playerName: string): Promise<void>` so the frontend can compile against the new actor method."
+        }
+      ]
+    },
+    {
+      "id": "REQ-20",
+      "summary": "Ensure the existing player input → Fetch Last 5 Games → preview + recommendations flow works end-to-end via backend ingestion, with reset returning to initial state and no Stats API URL UI.",
+      "acceptanceCriteria": [
+        "From a fresh load, entering a valid player name and clicking “Fetch Last 5 Games” results in a successful ingestion and then displays a 5-row last-five-games preview.",
+        "After ingestion, recommendations load without requiring any manual stat entry.",
+        "Reset returns the UI to its initial state and allows fetching a different player.",
+        "No UI requires a “Stats API URL” input."
+      ],
+      "file_operations": [
+        {
+          "path": "frontend/src/features/playerProps/components/LastFiveGamesForm.tsx",
+          "operation": "modify",
+          "description": "Align user-facing error handling with backend ingestion failures (keep messages English, avoid surfacing raw stack traces), and ensure form state transitions (fetch → preview → reset) continue to work with the updated mutation behavior."
+        },
+        {
+          "path": "frontend/src/App.tsx",
+          "operation": "modify",
+          "description": "Verify/wire the existing ingestionComplete + selectedPlayer gating so that after backend ingestion completes, the last-five-games preview and recommendations render without any manual stat entry and reset returns the UI to the initial state."
+        }
+      ]
+    }
+  ]
+}

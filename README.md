@@ -1,2 +1,3 @@
-# player-last-5-games-prop-recommender-basic-parlay-legs
-Exported from Caffeine project: Player last-5-games prop recommender (basic parlay legs)
+## 
+
+To run app build and run docker image: `docker build -t app . docker run -it --network host app`

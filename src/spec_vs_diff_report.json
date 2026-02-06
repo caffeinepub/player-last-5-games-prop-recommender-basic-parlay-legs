@@ -1,0 +1,56 @@
+{
+  "kind": "spec_vs_diff_report",
+  "version": "1.0",
+  "generatedAt": "2026-02-06T08:09:29.603Z",
+  "summary": "The diff does not implement the requested backend `ingestPlayer` method or the frontend changes to call it. Frontend ingestion still fetches BallDontLie directly and stores results via an existing backend storage method, rather than delegating ingestion to the backend and invalidating the specified React Query keys.",
+  "missing_requirements": [
+    {
+      "id": "REQ-16",
+      "requirement": "Add a new public shared backend method `ingestPlayer(playerName: Text) : async ()` that searches BallDontLie, fetches the most recent 5 games, converts them to the backend `Game` shape, stores them keyed by `playerName`, and rejects with clear English errors for player not found, stats not found, and network/provider failure.",
+      "reason": "`backend/main.mo` in the diff exposes `storeLast5Games`, `getLast5Games`, and `fetchLast5GamesAndStore`, but there is no `ingestPlayer` method and no shown HTTP outcall logic to BallDontLie or 5-game selection/conversion.",
+      "evidence": [
+        "backend/main.mo"
+      ]
+    },
+    {
+      "id": "REQ-17",
+      "requirement": "Align backend BallDontLie base URL usage so backend outcalls use `https://api.balldontlie.io/v1/...` for player search and stats retrieval; no frontend-provided API URL required.",
+      "reason": "While a `BALLDONTLIE_URL = \"https://api.balldontlie.io/v1/\"` constant exists, the diff does not show any backend outcalls to `/players?search=...` or `/stats?...` being performed.",
+      "evidence": [
+        "backend/main.mo"
+      ]
+    },
+    {
+      "id": "REQ-18",
+      "requirement": "Update `useIngestLastFiveGamesMutation` to stop calling BallDontLie from the browser and instead call `actor.ingestPlayer(playerName)`, then invalidate `['lastFiveGames', playerName]` and `['propRecommendations', playerName]` on success, with English user-facing errors.",
+      "reason": "The frontend summary explicitly states the hook still fetches from BallDontLie and stores via `fetchLast5GamesAndStore`, which contradicts the requirement to call `actor.ingestPlayer` and avoid browser fetches to BallDontLie.",
+      "evidence": [
+        "frontend-file-summaries.txt (frontend/src/features/playerProps/hooks/useIngestLastFiveGamesMutation.ts)"
+      ]
+    },
+    {
+      "id": "REQ-19",
+      "requirement": "Update `frontend/src/features/playerProps/backendClient.ts` to expose `ingestPlayer(playerName: string): Promise<void>` calling `this.actor.ingestPlayer(playerName)`, and keep `getLastFiveGames` mapping including `threes` -> `threesMade`.",
+      "reason": "The frontend summary for `backendClient.ts` only describes retrieving stored last 5 games and mapping `threesMade`; it does not mention any new `ingestPlayer` client method.",
+      "evidence": [
+        "frontend-file-summaries.txt (frontend/src/features/playerProps/backendClient.ts)"
+      ]
+    },
+    {
+      "id": "REQ-20",
+      "requirement": "Ensure the UI flow works end-to-end using backend ingestion (button triggers backend ingest, then preview and recommendations render; reset works; no Stats API URL input).",
+      "reason": "Because ingestion is still performed in the browser (per the `useIngestLastFiveGamesMutation` summary) and the backend `ingestPlayer` method is not present, the end-to-end flow is not updated to use backend ingestion as required.",
+      "evidence": [
+        "frontend-file-summaries.txt (frontend/src/features/playerProps/hooks/useIngestLastFiveGamesMutation.ts)",
+        "backend/main.mo"
+      ]
+    }
+  ],
+  "hallucinated_features": [],
+  "confidence": 0.86,
+  "changed_files": [
+    "backend/main.mo",
+    "frontend-file-summaries.txt",
+    "project_state.json"
+  ]
+}

@@ -1,0 +1,132 @@
+{
+  "kind": "build_request",
+  "title": "Implement backend ingestPlayer using BallDontLie and update frontend ingestion to call it",
+  "priority": "normal",
+  "requirements": [
+    {
+      "id": "REQ-16",
+      "text": "Add a new public shared backend method `ingestPlayer(playerName: Text) : async ()` that (1) searches BallDontLie for the player by name, (2) fetches the player’s most recent 5 games, (3) converts the response into the existing backend `Game` record shape `{ points; rebounds; assists; threes; date; opponent }`, and (4) stores the resulting 5-game array keyed by `playerName` so it can be returned by the existing `getLast5Games(playerName)` query.",
+      "target": "backend",
+      "source": {
+        "messageIds": [
+          "msg-1",
+          "msg-19",
+          "msg-20"
+        ],
+        "quotes": [
+          "Add the backend ingestPlayer method and update the frontend to use it",
+          "build it and watch it fail"
+        ]
+      },
+      "acceptanceCriteria": [
+        "`backend/main.mo` exposes `ingestPlayer(playerName: Text) : async ()` as a public method on the single actor.",
+        "`ingestPlayer` performs HTTP outcalls to BallDontLie to resolve a player ID from the provided `playerName` and then fetch recent game stats for that player.",
+        "Exactly 5 most recent games are selected (sorted most-recent-first by game date) and converted into backend `Game` records.",
+        "Each stored game includes `points`, `rebounds`, `assists`, `threes` (3PM), `date`, and `opponent` (opponent team abbreviation derived from home/visitor vs the player’s team).",
+        "After `ingestPlayer` completes successfully, `getLast5Games(playerName)` returns `?[]` with those stored backend `Game` records for the same `playerName`.",
+        "User-facing error conditions are represented as rejected calls (trap/throw) with clear English error messages for: player not found, stats not found, and network/provider failure."
+      ]
+    },
+    {
+      "id": "REQ-17",
+      "text": "Align backend BallDontLie base URL usage so backend outcalls use the same BallDontLie API host/version that the current frontend ingestion flow uses (`https://api.balldontlie.io/v1/...`).",
+      "target": "backend",
+      "source": {
+        "messageIds": [
+          "msg-1"
+        ],
+        "quotes": [
+          "Call BallDontLie to resolve the player ID from the provided playerName"
+        ]
+      },
+      "acceptanceCriteria": [
+        "Backend requests use `https://api.balldontlie.io/v1/players?search=...` for player search and `https://api.balldontlie.io/v1/stats?player_ids[]=...&per_page=...` (or equivalent) for stats retrieval.",
+        "No frontend-provided API URL is required to ingest a player."
+      ]
+    },
+    {
+      "id": "REQ-18",
+      "text": "Update the frontend ingestion workflow (`frontend/src/features/playerProps/hooks/useIngestLastFiveGamesMutation.ts`) to stop calling BallDontLie directly from the browser and instead call the backend `ingestPlayer(playerName)` method, then invalidate/refetch the existing React Query queries for last-five-games and recommendations.",
+      "target": "frontend",
+      "source": {
+        "messageIds": [
+          "msg-1",
+          "msg-19"
+        ],
+        "quotes": [
+          "Update the frontend to use it",
+          "Update the React Query mutation that handles “Fetch Last 5 Games” to call ingestPlayer. After ingestPlayer completes, invalidate and refetch the query that loads last‑5‑games and recommendations."
+        ]
+      },
+      "acceptanceCriteria": [
+        "`useIngestLastFiveGamesMutation` no longer performs any `fetch(...)` calls to `api.balldontlie.io`.",
+        "`useIngestLastFiveGamesMutation` calls `actor.ingestPlayer(playerName)` and awaits completion.",
+        "On success, React Query invalidates `['lastFiveGames', playerName]` and `['propRecommendations', playerName]` (matching the app’s existing query keys) so UI refreshes automatically.",
+        "Any error shown to the user remains in English and indicates ingestion failed (without leaking low-level stack traces)."
+      ]
+    },
+    {
+      "id": "REQ-19",
+      "text": "Update the frontend backend client wrapper (`frontend/src/features/playerProps/backendClient.ts`) to expose an `ingestPlayer(playerName: string): Promise<void>` method that calls the backend actor’s `ingestPlayer` method, and keep `getLastFiveGames` working with the backend’s `getLast5Games` response.",
+      "target": "frontend",
+      "source": {
+        "messageIds": [
+          "msg-1",
+          "msg-19"
+        ],
+        "quotes": [
+          "Update the backend client wrapper to expose ingestPlayer(playerName: string)."
+        ]
+      },
+      "acceptanceCriteria": [
+        "`PlayerPropsBackendClient` includes an `ingestPlayer(playerName: string)` method that calls `this.actor.ingestPlayer(playerName)`.",
+        "Existing `getLastFiveGames` continues to map backend `Game` fields into `GameStatsInput` fields, including mapping backend `threes` to frontend `threesMade`."
+      ]
+    },
+    {
+      "id": "REQ-20",
+      "text": "Ensure the existing UI flow (player name input + “Fetch Last 5 Games” button + last-5-games preview + recommendations) works end-to-end using backend ingestion: clicking “Fetch Last 5 Games” ingests via backend, then the last-5-games preview table and recommendations render for the entered player.",
+      "target": "frontend",
+      "source": {
+        "messageIds": [
+          "msg-1",
+          "msg-20"
+        ],
+        "quotes": [
+          "Replace the manual 'Last 5 Games' stat-entry table with an automatic 'Fetch last 5 games' workflow: user enters a player name, triggers fetch, then runs analysis using the fetched games.",
+          "build it and watch it fail"
+        ]
+      },
+      "acceptanceCriteria": [
+        "From a fresh load, entering a valid player name and clicking “Fetch Last 5 Games” results in a successful ingestion and then displays a 5-row last-five-games preview.",
+        "After ingestion, recommendations load without requiring any manual stat entry.",
+        "Reset returns the UI to its initial state and allows fetching a different player.",
+        "No UI requires a “Stats API URL” input."
+      ]
+    }
+  ],
+  "constraints": [
+    "Backend must remain a single Motoko actor with all logic in `backend/main.mo` (no additional backend services).",
+    "Do not edit any files under the immutable frontend paths: `frontend/src/hooks/useInternetIdentity.ts`, `frontend/src/hooks/useInternetIdentity.tsx`, `frontend/src/hooks/useActor.ts`, `frontend/src/main.tsx`, `frontend/src/components/ui`. Compose existing UI components instead of modifying them."
+  ],
+  "nonGoals": [
+    "Add or change authentication beyond the existing Internet Identity integration.",
+    "Add real-time updates (WebSockets) or push notifications.",
+    "Integrate additional external sports data providers beyond BallDontLie.",
+    "Add new sportsbook APIs; sportsbook offered props remain manual input as currently designed."
+  ],
+  "imageRequirements": {
+    "required": [],
+    "edits": []
+  },
+  "userProfileUpdate": {
+    "goalsToAdd": [],
+    "goalsToRemove": [],
+    "preferencesToAdd": [],
+    "preferencesToRemove": [],
+    "miscToAdd": [],
+    "miscToRemove": [],
+    "fieldsToSet": {},
+    "fieldsToDelete": []
+  }
+}

@@ -1,0 +1,69 @@
+{
+  "kind": "coverage_report",
+  "version": "1.0",
+  "generatedAt": "2026-02-06T08:09:29.606Z",
+  "sources": {
+    "buildRequest": true,
+    "implementationPlan": true
+  },
+  "requirements": {
+    "total": 5,
+    "implemented": 0,
+    "items": [
+      {
+        "id": "REQ-16",
+        "summary": "Add a new public shared backend method `ingestPlayer(playerName: Text) : async ()` that (1) searches BallDontLie for the player by name, (2) fetches the player’s most recent 5 games, (3) converts the response into the existing backend `Game` record shape `{ points; rebounds; assists; threes; date; opponent }`, and (4) stores the resulting 5-game array keyed by `playerName` so it can be returned by the existing `getLast5Games(playerName)` query.",
+        "status": "unknown",
+        "plannedFiles": [],
+        "matchedFiles": []
+      },
+      {
+        "id": "REQ-17",
+        "summary": "Align backend BallDontLie base URL usage so backend outcalls use the same BallDontLie API host/version that the current frontend ingestion flow uses (`https://api.balldontlie.io/v1/...`).",
+        "status": "unknown",
+        "plannedFiles": [],
+        "matchedFiles": []
+      },
+      {
+        "id": "REQ-18",
+        "summary": "Update the frontend ingestion workflow (`frontend/src/features/playerProps/hooks/useIngestLastFiveGamesMutation.ts`) to stop calling BallDontLie directly from the browser and instead call the backend `ingestPlayer(playerName)` method, then invalidate/refetch the existing React Query queries for last-five-games and recommendations.",
+        "status": "missing",
+        "plannedFiles": [
+          "frontend/src/features/playerProps/hooks/useIngestLastFiveGamesMutation.ts"
+        ],
+        "matchedFiles": []
+      },
+      {
+        "id": "REQ-19",
+        "summary": "Update the frontend backend client wrapper (`frontend/src/features/playerProps/backendClient.ts`) to expose an `ingestPlayer(playerName: string): Promise<void>` method that calls the backend actor’s `ingestPlayer` method, and keep `getLastFiveGames` working with the backend’s `getLast5Games` response.",
+        "status": "missing",
+        "plannedFiles": [
+          "frontend/src/features/playerProps/backendClient.ts",
+          "frontend/src/backend.d.ts"
+        ],
+        "matchedFiles": []
+      },
+      {
+        "id": "REQ-20",
+        "summary": "Ensure the existing UI flow (player name input + “Fetch Last 5 Games” button + last-5-games preview + recommendations) works end-to-end using backend ingestion: clicking “Fetch Last 5 Games” ingests via backend, then the last-5-games preview table and recommendations render for the entered player.",
+        "status": "missing",
+        "plannedFiles": [
+          "frontend/src/features/playerProps/components/LastFiveGamesForm.tsx",
+          "frontend/src/App.tsx"
+        ],
+        "matchedFiles": []
+      }
+    ]
+  },
+  "changedFiles": [
+    "backend/main.mo",
+    "build-request.json",
+    "feature_evidence.json",
+    "frontend-file-summaries.txt",
+    "frontend-implementation-plan.json",
+    "project_state.json",
+    "scratch/component-selection.json",
+    "spec.md",
+    "spec_vs_diff_report.json"
+  ]
+}
